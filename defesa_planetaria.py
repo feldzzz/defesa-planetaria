@@ -1,8 +1,6 @@
 # =====================================================================
 #  DEFESA PLANETÁRIA - sistema solar, impacto de asteroides e métodos de defesa
-#  NÃO precisa instalar nada: usa só o que já vem com o Python (tkinter).
-#  Como rodar: python defesa_planetaria.py        (abre o painel direto)
-#              python defesa_planetaria.py menu   (versão em texto, com menu)
+#  Como rodar: python defesa_planetaria.py       
 # =====================================================================
 
 # ---------- 1) IMPORTAÇÕES ----------
@@ -102,12 +100,12 @@ def calcular_impacto(diametro_m, velocidade_kms, densidade=3000):
     diametro_m: diâmetro em metros | velocidade_kms: km/s | densidade: kg/m³
     Rochoso = 3000, metálico = 7800, gelado = 1000."""
     raio = diametro_m / 2
-    volume = 4 / 3 * math.pi * raio ** 3            # volume da esfera
-    massa = densidade * volume                       # massa = densidade x volume (kg)
-    v = velocidade_kms * 1000                        # km/s -> m/s
-    energia_j = 0.5 * massa * v ** 2                 # energia cinética = ½·m·v² (joules)
-    energia_mt = energia_j / MT_J                    # joules -> megatons de TNT
-    nome, desc, cor, nivel = classificar_risco(energia_mt)   # classifica o risco
+    volume = 4 / 3 * math.pi * raio ** 3            
+    massa = densidade * volume                    
+    v = velocidade_kms * 1000                        
+    energia_j = 0.5 * massa * v ** 2           
+    energia_mt = energia_j / MT_J                
+    nome, desc, cor, nivel = classificar_risco(energia_mt)  
     return {
         "massa_kg": massa, "energia_j": energia_j, "energia_mt": energia_mt,
         "energia_kt": energia_mt * 1000,
@@ -157,9 +155,9 @@ def tentar_defesa(metodo, massa_kg, diametro_m, restante_s):
     else:
         # laser: força constante de 100 N empurrando durante todo o tempo
         dv = sorteio(.5, 1.2) * 100 * restante_s / massa_kg
-    dv *= random.lognormvariate(0, 0.8)                        # imprevistos da missão (erro de pontaria, falhas...)
-    desvio_m = dv * restante_s                                 # quanto ele sai do caminho (metros)
-    necessario_m = 1.5 * RAIO_TERRA_M * sorteio(.8, 1.2)       # desvio mínimo para errar a Terra
+    dv *= random.lognormvariate(0, 0.8)                    
+    desvio_m = dv * restante_s                                
+    necessario_m = 1.5 * RAIO_TERRA_M * sorteio(.8, 1.2)       
     return {"dv": dv, "desvio_m": desvio_m, "necessario_m": necessario_m,
             "sucesso": desvio_m >= necessario_m}
 
@@ -167,7 +165,7 @@ def tentar_defesa(metodo, massa_kg, diametro_m, restante_s):
 def chance_defesa(metodo, massa_kg, diametro_m, restante_s, tentativas=400):
     """Chance (%) de sucesso: repete a tentativa várias vezes e conta quantas deram certo."""
     acertos = 0
-    for _ in range(tentativas):                                # laço: 400 simulações
+    for _ in range(tentativas):                           
         if tentar_defesa(metodo, massa_kg, diametro_m, restante_s)["sucesso"]:
             acertos += 1
     return acertos / tentativas * 100
@@ -188,8 +186,8 @@ def jd_para_texto(jd):
 def resolver_kepler(M_graus, e):
     """Resolve a equação de Kepler (M = E - e·sen E) pelo método de Newton."""
     M = (M_graus % 360) * D
-    E = M if e < .8 else math.pi                     # chute inicial
-    for _ in range(12):                              # 12 iterações bastam
+    E = M if e < .8 else math.pi                 
+    for _ in range(12):                           
         E -= (E - e * math.sin(E) - M) / (1 - e * math.cos(E))
     return E
 
@@ -300,7 +298,7 @@ def criar_trajetoria(velocidade, j0):
         """Menor distância até a Terra daqui para frente (varre o tempo em passos)."""
         passo = max(.25, T / 1200)
         menor, t = 9e9, t_ini
-        while t <= T * 1.12:                         # laço while: anda no tempo
+        while t <= T * 1.12:                   
             menor = min(menor, math.dist(pos(t), posicao_planeta(PLANETAS[INDICE_TERRA], j0 + t)))
             t += passo
         return menor
@@ -436,7 +434,7 @@ if tk:
             try:
                 d = float(self.v_d.get().replace(",", "."))
                 v = float(self.v_v.get().replace(",", "."))
-            except ValueError:                       # texto que não é número
+            except ValueError:                     
                 return None
             if d > 0 and v > 0:
                 return d, v
@@ -470,7 +468,7 @@ if tk:
             tempo_s = DIST_INICIAL_UA / (vel * 86400 / UA_KM) * 86400   # tempo de aviso previsto
             metodo = self.v_met.get()
             if metodo == EVACUAR:
-                chance = 100 if r["nivel"] <= 3 else 0                  # só salva vidas se o dano for regional ou menor
+                chance = 100 if r["nivel"] <= 3 else 0                  
             else:
                 chance = chance_defesa(metodo, r["massa_kg"], dia, tempo_s, 150)
             self.l_def.config(text=f"Aviso: {tempo_s / 86400 / 365.25:.1f} anos antes do impacto\n"
@@ -485,7 +483,7 @@ if tk:
             self.dados = (self.nome, vals[0], vals[1])
             self.fim, self.play, self.raio, self.fr_fim = False, True, 12, 0
             self.msg_def, self.cor_def = "", "#ffb870"
-            self.dpq_met = self.traj["T"] * 1.12 / 240                  # dura ~240 quadros
+            self.dpq_met = self.traj["T"] * 1.12 / 240                  
 
         def pausar(self):
             """Pausa / continua. Se o meteoro já terminou, limpa e volta ao normal."""
@@ -556,24 +554,24 @@ if tk:
         def quadro(self):
             """Roda a cada ~30 ms: avança o tempo e redesenha tudo."""
             tj = self.traj
-            if self.play:                            # o tempo avança
+            if self.play:                        
                 self.jd += self.dpq_met if tj else self.dpq
             c, W, H = self.tela, self.larg, self.alt
             c.delete("all")
-            for ex, ey in self.estrelas:             # estrelinhas de fundo
+            for ex, ey in self.estrelas:             
                 c.create_rectangle(ex * W, ey * H, ex * W + 1, ey * H + 1, fill="#6b7aa8", outline="")
             terra = posicao_planeta(PLANETAS[INDICE_TERRA], self.jd)
 
-            for orb in self.orb_p:                   # órbitas dos planetas
+            for orb in self.orb_p:                   
                 self.linha(orb, terra, "#243556")
-            for a, orb in zip(ASTEROIDES, self.orb_a):   # órbitas dos asteroides
+            for a, orb in zip(ASTEROIDES, self.orb_a):   
                 if orb:
                     forte = a[0] == self.nome
                     self.linha(orb, terra, cor_asteroide(a) if forte else "#4a2a35", 2 if forte else 1)
-            self.ponto([0, 0, 0], terra, 7, "#ffd95a", "Sol", "#ffd95a")        # Sol
-            for p in PLANETAS:                       # planetas
+            self.ponto([0, 0, 0], terra, 7, "#ffd95a", "Sol", "#ffd95a")       
+            for p in PLANETAS:                    
                 self.ponto(posicao_planeta(p, self.jd), terra, 5 if p[0] == "Terra" else 3, p[1], p[0], "#9fb3da")
-            for a in ASTEROIDES:                     # asteroides
+            for a in ASTEROIDES:                    
                 forte = a[0] == self.nome
                 x, y = self.ponto(posicao_asteroide(a, self.jd), terra, 4 if forte else 2, cor_asteroide(a),
                                   a[0], None, ("Arial", 9, "bold") if forte else ("Arial", 7))
@@ -586,7 +584,7 @@ if tk:
                 self.cartao(["Escolha um asteroide, ajuste os valores", "e clique em 'Lançar contra a Terra'."], "#4de1ff")
             c.create_text(10, H - 10, anchor="sw", fill="#8ea0c8", font=("Arial", 8),
                           text=f"Data simulada: {jd_para_texto(self.jd)}   |   foco na Terra   |   arraste para girar")
-            self.raiz.after(30, self.quadro)         # agenda o próximo quadro
+            self.raiz.after(30, self.quadro)       
 
         def cartao(self, linhas, cor):
             """Cartão de texto no canto superior esquerdo da tela."""
@@ -636,54 +634,6 @@ def abrir_painel(lancar_inicial=None):
     raiz = tk.Tk()
     Painel(raiz, lancar_inicial)
     raiz.mainloop()
-
-
-# ---------- 11) VERSÃO EM TEXTO (menu no terminal) ----------
-def escolher_asteroide():
-    """Deixa o usuário escolher um asteroide da lista ou digitar os valores."""
-    print("\nEscolha um asteroide:")
-    for k, a in enumerate(ASTEROIDES, 1):
-        print(f"  {k:2d}) {a[0]} (~{a[9]:,} m)")
-    print("   0) Digitar diâmetro e velocidade")
-    op = int(input("Opção: "))
-    if op == 0:
-        return "Personalizado", float(input("Diâmetro (m): ")), float(input("Velocidade (km/s): "))
-    a = ASTEROIDES[op - 1]
-    return a[0], a[9], VELOCIDADES[a[0]]
-
-
-def testar_defesas(nome, diametro, velocidade):
-    """Mostra a chance de cada método de defesa funcionar (versão texto)."""
-    r = calcular_impacto(diametro, velocidade)
-    tempo_s = DIST_INICIAL_UA / (velocidade * 86400 / UA_KM) * 86400
-    print(f"\n{nome}: {r['massa_kg']:.2e} kg, {r['energia_kt']:.2e} kt -> {r['risco'].upper()}")
-    print(f"Tempo de aviso: {tempo_s / 86400 / 365.25:.1f} anos")
-    for m in METODOS[:-1]:                           # todos os métodos, menos a evacuação
-        print(f"  {m}: {chance_defesa(m, r['massa_kg'], diametro, tempo_s):.0f}% de chance")
-    print("  " + EVACUAR + ": " + ("salva vidas" if r["nivel"] <= 3 else "não basta"))
-
-
-def menu():
-    """Loop principal da versão em texto."""
-    while True:
-        print("\n===== DEFESA PLANETÁRIA (texto) =====")
-        print("1) Calcular impacto de um asteroide")
-        print("2) Testar métodos de defesa")
-        print("3) Abrir o painel visual")
-        print("0) Sair")
-        op = input("Opção: ").strip()
-        if op == "1":
-            nome, dia, vel = escolher_asteroide()
-            mostrar_impacto(nome, dia, vel)
-        elif op == "2":
-            testar_defesas(*escolher_asteroide())
-        elif op == "3":
-            abrir_painel()
-        elif op == "0":
-            print("Encerrando o programa. Até mais!")
-            break
-        else:                                        # qualquer outra coisa digitada
-            print("Opção inválida! Digite 1, 2, 3 ou 0.")
 
 
 # ---------- 12) PONTO DE ENTRADA ----------
